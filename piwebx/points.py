@@ -20,7 +20,9 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger("piwebx")
 
 
-async def find_dataserver_web_id(client: AsyncClient, dataserver: str | None = None) -> str:
+async def find_dataserver_web_id(
+    client: AsyncClient, dataserver: str | None = None
+) -> str:
     """Get the data archive server WebId.
 
     If not specified, the first data server returned in the list from "/dataservers"
@@ -36,7 +38,9 @@ async def find_dataserver_web_id(client: AsyncClient, dataserver: str | None = N
         httpx.HTTPError: There was an ambiguous exception that occurred while
             handling the request
     """
-    response = await client.get("/dataservers", params={"selectedFields": "Items.Name;Items.WebId"})
+    response = await client.get(
+        "/dataservers", params={"selectedFields": "Items.Name;Items.WebId"}
+    )
     data = cast("dict[str, list[dict[str, str]]]", await handle_json_response(response))
 
     items = data.get("Items")
@@ -45,7 +49,7 @@ async def find_dataserver_web_id(client: AsyncClient, dataserver: str | None = N
             "Unable to select data server WebID. No items returned from server",
             errors=[],
             request=response.request,
-            response=response
+            response=response,
         )
     if dataserver:
         for item in items:
@@ -56,7 +60,7 @@ async def find_dataserver_web_id(client: AsyncClient, dataserver: str | None = N
                 f"Unable to select data server WebID. '{dataserver}' not found",
                 errors=[],
                 request=response.request,
-                response=response
+                response=response,
             )
     else:
         return items[0]["WebId"]
@@ -73,13 +77,13 @@ async def find_points_web_id(
 
     If the data archive server is not provided, :function: `abcpi.search.server.find_dataserver_web_id`
     will be used to attempt to discover the archive server.
-    
+
     Args:
         client: The client used to retrieve the data
         points: The sequence of points to search for WebId's
         dataserver: The name of the data archive server. Will attempt to search
             for the WebId using :function: `abcpi.search.server.find_dataserver_web_id`
-    
+
     Raises:
         httpx.HTTPError: There was an ambiguous exception that occurred while
             handling the request
@@ -95,14 +99,12 @@ async def find_points_web_id(
     requests = [
         client.get(
             f"/dataservers/{dataserver_web_id}/points",
-            params={
-                "nameFilter": point,
-                "selectedFields": "Items.Name;Items.WebId"
-            }
-        ) for point in points
+            params={"nameFilter": point, "selectedFields": "Items.Name;Items.WebId"},
+        )
+        for point in points
     ]
     responses = await asyncio.gather(*requests)
-    
+
     handlers = [
         handle_json_response(
             response, raise_for_status=False, raise_for_content_error=False
@@ -141,7 +143,9 @@ async def find_points_web_id(
     return found, not_found
 
 
-async def find_points_type(client: AsyncClient, web_ids: Sequence[str]) -> dict[str, str | None]:
+async def find_points_type(
+    client: AsyncClient, web_ids: Sequence[str]
+) -> dict[str, str | None]:
     """Get the point type for a sequence of PI points.
 
     Args:
@@ -153,12 +157,11 @@ async def find_points_type(client: AsyncClient, web_ids: Sequence[str]) -> dict[
             handling the request
     """
     requests = [
-        client.get(
-            f"/points/{web_id}", params={"selectedFields": "PointType"}
-        ) for web_id in web_ids
+        client.get(f"/points/{web_id}", params={"selectedFields": "PointType"})
+        for web_id in web_ids
     ]
     responses = await asyncio.gather(*requests)
-    
+
     handlers = [
         handle_json_response(
             response, raise_for_status=False, raise_for_content_error=False
@@ -177,4 +180,4 @@ async def find_points_type(client: AsyncClient, web_ids: Sequence[str]) -> dict[
             point_types[web_id] = None
         else:
             point_types[web_id] = result["PointType"]
-    return point_types
+    return cast("dict[str, str | None]", point_types)

@@ -6,6 +6,9 @@ from typing import Any, TypeVar, cast, TYPE_CHECKING
 
 from piwebx.util.time import from_utc
 
+
+__all__ = ("locf",)
+
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Iterator, Sequence
     from piwebx.types import JSONPrimitive, TimeseriesRow
