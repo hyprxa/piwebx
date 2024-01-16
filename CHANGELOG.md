@@ -19,3 +19,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Attributes (`find_attributes_type`)
 
 - Added `get_current` , `get_recorded_at_time` and `get_interpolated_at_time` streams functions
+
+## 0.0.3 (16 Jan 2024)
+
+- Added WebId search functions for
+
+  - Assetservers (`find_assetserver_web_id`)
+  - Assetdatabase (`find_assetdatabase_web_id`)
+  - Dataservers (`find_dataserver_web_id`)
