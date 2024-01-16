@@ -130,7 +130,7 @@ async def get_interpolated(
 
         for row in iter_timeseries_rows(index=index, data=data, timezone=timezone):
             yield row
-        
+
 
 async def get_recorded(
     client: AsyncClient,
@@ -406,7 +406,8 @@ async def get_interpolated_at_time(
         for response in responses
     ]
     results = cast(
-        "list[dict[str, list[dict[str, JSONPrimitive]]] | None]", await asyncio.gather(*handlers)
+        "list[dict[str, list[dict[str, JSONPrimitive]]] | None]",
+        await asyncio.gather(*handlers),
     )
 
     row: list[JSONPrimitive] = []
@@ -418,7 +419,9 @@ async def get_interpolated_at_time(
         assert isinstance(
             items, list
         ), "Expected list for 'Items' property. Has PI Web API schema changed?"
-        assert len(items) == 1, "Expected list of length 1. Has PI Web API schema changed?"
+        assert (
+            len(items) == 1
+        ), "Expected list of length 1. Has PI Web API schema changed?"
         item = items[0]
         if item["Good"]:
             value = item["Value"]

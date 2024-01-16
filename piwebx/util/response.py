@@ -8,9 +8,11 @@ from httpx import HTTPStatusError, Response
 
 from piwebx.exceptions import APIResponseError
 
+
+__all__ = ("handle_json_response",)
+
 if TYPE_CHECKING:
     from piwebx.types import JSONContent
-
 
 _LOGGER = logging.getLogger("piwebx")
 

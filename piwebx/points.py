@@ -31,13 +31,13 @@ async def find_points_web_id(
 
     If the data archive server is not provided, :function: `abcpi.search.server.find_dataserver_web_id`
     will be used to attempt to discover the archive server.
-    
+
     Args:
         client: The client used to retrieve the data
         points: The sequence of points to search for WebId's
         dataserver: The name of the data archive server. Will attempt to search
             for the WebId using :function: `abcpi.search.server.find_dataserver_web_id`
-    
+
     Raises:
         httpx.HTTPError: There was an ambiguous exception that occurred while
             handling the request
@@ -53,14 +53,12 @@ async def find_points_web_id(
     requests = [
         client.get(
             f"/dataservers/{dataserver_web_id}/points",
-            params={
-                "nameFilter": point,
-                "selectedFields": "Items.Name;Items.WebId"
-            }
-        ) for point in points
+            params={"nameFilter": point, "selectedFields": "Items.Name;Items.WebId"},
+        )
+        for point in points
     ]
     responses = await asyncio.gather(*requests)
-    
+
     handlers = [
         handle_json_response(
             response, raise_for_status=False, raise_for_content_error=False
@@ -99,7 +97,9 @@ async def find_points_web_id(
     return found, not_found
 
 
-async def find_points_type(client: AsyncClient, web_ids: Sequence[str]) -> dict[str, str | None]:
+async def find_points_type(
+    client: AsyncClient, web_ids: Sequence[str]
+) -> dict[str, str | None]:
     """Get the point type for a sequence of PI points.
 
     Args:
@@ -111,12 +111,11 @@ async def find_points_type(client: AsyncClient, web_ids: Sequence[str]) -> dict[
             handling the request
     """
     requests = [
-        client.get(
-            f"/points/{web_id}", params={"selectedFields": "PointType"}
-        ) for web_id in web_ids
+        client.get(f"/points/{web_id}", params={"selectedFields": "PointType"})
+        for web_id in web_ids
     ]
     responses = await asyncio.gather(*requests)
-    
+
     handlers = [
         handle_json_response(
             response, raise_for_status=False, raise_for_content_error=False
@@ -135,4 +134,4 @@ async def find_points_type(client: AsyncClient, web_ids: Sequence[str]) -> dict[
             point_types[web_id] = None
         else:
             point_types[web_id] = result["PointType"]
-    return point_types
+    return cast("dict[str, str | None]", point_types)

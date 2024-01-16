@@ -88,7 +88,7 @@ async def find_elements_web_id(
     Args:
         client: The client used to retrieve the data
         paths: The sequence of element paths to search for WebId's
-    
+
     Raises:
         httpx.HTTPError: There was an ambiguous exception that occurred while
             handling the request
@@ -96,13 +96,8 @@ async def find_elements_web_id(
     paths = [path.upper() for path in paths]
 
     requests = [
-        client.get(
-            f"/elements",
-            params={
-                "path": path,
-                "selectedFields": "Path;WebId"
-            }
-        ) for path in paths
+        client.get(f"/elements", params={"path": path, "selectedFields": "Path;WebId"})
+        for path in paths
     ]
     responses = await asyncio.gather(*requests)
 
@@ -147,7 +142,7 @@ async def find_attributes_web_id(
     Args:
         client: The client used to retrieve the data
         paths: The sequence of attribute paths to search for WebId's
-    
+
     Raises:
         httpx.HTTPError: There was an ambiguous exception that occurred while
             handling the request
@@ -156,12 +151,9 @@ async def find_attributes_web_id(
 
     requests = [
         client.get(
-            f"/attributes",
-            params={
-                "path": path,
-                "selectedFields": "Path;WebId"
-            }
-        ) for path in paths
+            f"/attributes", params={"path": path, "selectedFields": "Path;WebId"}
+        )
+        for path in paths
     ]
     responses = await asyncio.gather(*requests)
 
@@ -197,14 +189,14 @@ async def find_attributes_web_id_from_element(
     client: AsyncClient, element_web_id: str
 ) -> dict[str, str]:
     """Get the WebId's for all attributes associated to an element.
-    
+
     This only retrieves parent attributes directly beneath the element. It does
     not recursively retrieve child attributes.
 
     Args:
         client: The client used to retrieve the data
         element_web_id: The WebId for the parent element
-    
+
     Raises:
         piwebx.APIResponseError: If ``element_web_id`` does not point to a valid
             element or an internal server occurred on the Web API server
@@ -217,14 +209,11 @@ async def find_attributes_web_id_from_element(
 
     response = await client.get(
         f"/elements/{element_web_id}/attributes",
-        params={"selectedFields": "Items.Path;Items.WebId"}
+        params={"selectedFields": "Items.Path;Items.WebId"},
     )
     # This shouldn't raise APIResponseError unless there is an internal server
     # error
-    data = cast(
-        "dict[str, list[dict[str, str]]]",
-        await handle_json_response(response)
-    )
+    data = cast("dict[str, list[dict[str, str]]]", await handle_json_response(response))
 
     items = data.get("Items")
     assert isinstance(
@@ -235,7 +224,9 @@ async def find_attributes_web_id_from_element(
     return {item["Path"]: item["WebId"] for item in items}
 
 
-async def find_attributes_type(client: AsyncClient, web_ids: Sequence[str]) -> dict[str, str | None]:
+async def find_attributes_type(
+    client: AsyncClient, web_ids: Sequence[str]
+) -> dict[str, str | None]:
     """Get the data type for a sequence of PI attributes.
 
     Args:
@@ -247,12 +238,11 @@ async def find_attributes_type(client: AsyncClient, web_ids: Sequence[str]) -> d
             handling the request
     """
     requests = [
-        client.get(
-            f"/attributes/{web_id}", params={"selectedFields": "Type"}
-        ) for web_id in web_ids
+        client.get(f"/attributes/{web_id}", params={"selectedFields": "Type"})
+        for web_id in web_ids
     ]
     responses = await asyncio.gather(*requests)
-    
+
     handlers = [
         handle_json_response(
             response, raise_for_status=False, raise_for_content_error=False
@@ -271,4 +261,4 @@ async def find_attributes_type(client: AsyncClient, web_ids: Sequence[str]) -> d
             attribute_types[web_id] = None
         else:
             attribute_types[web_id] = result["Type"]
-    return attribute_types
+    return cast("dict[str, str | None]", attribute_types)
