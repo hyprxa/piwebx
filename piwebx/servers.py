@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import cast, TYPE_CHECKING
 
-from piwebx import APIResponseError, handle_json_response
+from piwebx.exceptions import APIResponseError
+from piwebx.util.response import handle_json_response
 
 
 __all__ = (

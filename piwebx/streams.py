@@ -245,18 +245,18 @@ async def get_recorded(
                 continue
             yield timestamp, row
 
-        # The next start time is always the last end time, so the only time we
-        # need to get the last row is when there are no more time chunks to work
-        # through
-        else:
-            end_row = await get_recorded_at_time(
-                client=client,
-                web_ids=web_ids,
-                time=end_time,
-                timezone=timezone,
-                max_concurrency=max_concurrency,
-            )
-            yield end_row
+    # The next start time is always the last end time, so the only time we
+    # need to get the last row is when there are no more time chunks to work
+    # through
+    else:
+        end_row = await get_recorded_at_time(
+            client=client,
+            web_ids=web_ids,
+            time=end_time,
+            timezone=timezone,
+            max_concurrency=max_concurrency,
+        )
+        yield end_row
 
 
 async def get_current(
