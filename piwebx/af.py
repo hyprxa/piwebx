@@ -31,8 +31,7 @@ async def find_assetdatabase_web_id(
 ) -> str:
     """Get the asset database WebId.
 
-    If ``assetserver`` is not provided, :function: `abcpi.search.server.find_assetserver_web_id`
-    will be used to attempt to discover the asset server.
+    If ``assetserver`` is not provided, this will attempt to discover the asset server.
 
     Args:
         client: The client used to retrieve the data
