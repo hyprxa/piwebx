@@ -36,8 +36,8 @@ async def find_assetdatabase_web_id(
     Args:
         client: The client used to retrieve the data
         assetdatbase: The asset database name to search for
-        assetserver: The name of the asset server. Will attempt to search
-            for the WebId using :function: `abcpi.search.server.find_asseterver_web_id`
+        assetserver: The name of the asset server. Will attempt to discover
+            for the WebId
 
     Raises:
         piwebx.APIResponseError: If ``assetserver`` is not ``None`` and not found
