@@ -27,3 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Assetservers (`find_assetserver_web_id`)
   - Assetdatabase (`find_assetdatabase_web_id`)
   - Dataservers (`find_dataserver_web_id`)
+
+## 0.0.4 (21 Jan 2024)
+
+- Fixed a bug in all `streams` functions that would allow them to exceed the `max_concurrency` parameter
