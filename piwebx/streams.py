@@ -99,7 +99,7 @@ async def get_interpolated(
 
     max_concurrency = max_concurrency or len(web_ids)
     for start_time, end_time in zip(start_times, end_times):
-        responses = []
+        results = cast("list[dict[str, list[dict[str, JSONPrimitive]]] | None]", [])
         requests = [
             client.get(
                 f"streams/{web_id}/interpolated",
@@ -113,18 +113,15 @@ async def get_interpolated(
             for web_id in web_ids
         ]
         for page in paginate(requests, max_concurrency):
-            responses.extend(await asyncio.gather(*page))
-
-        handlers = [
-            handle_json_response(
-                response, raise_for_status=False, raise_for_content_error=False
-            )
-            for response in responses
-        ]
-        results = cast(
-            "list[dict[str, list[dict[str, JSONPrimitive]]] | None]",
-            await asyncio.gather(*handlers),
-        )
+            responses = await asyncio.gather(*page)
+            handlers = [
+                handle_json_response(
+                    response, raise_for_status=False, raise_for_content_error=False
+                )
+                for response in responses
+            ]
+            results.extend(await asyncio.gather(*handlers))
+        
         data = [format_streams_content(result) for result in results]
         index = get_timestamp_index(data)
 
@@ -194,7 +191,7 @@ async def get_recorded(
 
     max_concurrency = max_concurrency or len(web_ids)
     for start_time, end_time in zip(start_times, end_times):
-        responses = []
+        results = cast("list[dict[str, list[dict[str, JSONPrimitive]]] | None]", [])
         requests = [
             client.get(
                 f"streams/{web_id}/recorded",
@@ -207,18 +204,15 @@ async def get_recorded(
             for web_id in web_ids
         ]
         for page in paginate(requests, max_concurrency):
-            responses.extend(await asyncio.gather(*page))
-
-        handlers = [
-            handle_json_response(
-                response, raise_for_status=False, raise_for_content_error=False
-            )
-            for response in responses
-        ]
-        results = cast(
-            "list[dict[str, list[dict[str, JSONPrimitive]]] | None]",
-            await asyncio.gather(*handlers),
-        )
+            responses = await asyncio.gather(*page)
+            handlers = [
+                handle_json_response(
+                    response, raise_for_status=False, raise_for_content_error=False
+                )
+                for response in responses
+            ]
+            results.extend(await asyncio.gather(*handlers))
+        
         data = [format_streams_content(result) for result in results]
         index = get_timestamp_index(data)
 
@@ -315,7 +309,7 @@ async def get_recorded_at_time(
     """
     time = to_utc(time)
 
-    responses = []
+    results = cast("list[dict[str, JSONPrimitive] | None]", [])
     requests = [
         client.get(
             f"streams/{web_id}/recordedattime",
@@ -329,17 +323,14 @@ async def get_recorded_at_time(
 
     max_concurrency = max_concurrency or len(web_ids)
     for page in paginate(requests, max_concurrency):
-        responses.extend(await asyncio.gather(*page))
-
-    handlers = [
-        handle_json_response(
-            response, raise_for_status=False, raise_for_content_error=False
-        )
-        for response in responses
-    ]
-    results = cast(
-        "list[dict[str, JSONPrimitive] | None]", await asyncio.gather(*handlers)
-    )
+        responses = await asyncio.gather(*page)
+        handlers = [
+            handle_json_response(
+                response, raise_for_status=False, raise_for_content_error=False
+            )
+            for response in responses
+        ]
+        results.extend(await asyncio.gather(*handlers))
 
     row: list[JSONPrimitive] = []
     for result in results:
@@ -383,7 +374,7 @@ async def get_interpolated_at_time(
     """
     time = to_utc(time)
 
-    responses = []
+    results = cast("list[dict[str, list[dict[str, JSONPrimitive]]] | None]", [])
     requests = [
         client.get(
             f"streams/{web_id}/interpolatedattimes",
@@ -397,18 +388,14 @@ async def get_interpolated_at_time(
 
     max_concurrency = max_concurrency or len(web_ids)
     for page in paginate(requests, max_concurrency):
-        responses.extend(await asyncio.gather(*page))
-
-    handlers = [
-        handle_json_response(
-            response, raise_for_status=False, raise_for_content_error=False
-        )
-        for response in responses
-    ]
-    results = cast(
-        "list[dict[str, list[dict[str, JSONPrimitive]]] | None]",
-        await asyncio.gather(*handlers),
-    )
+        responses = await asyncio.gather(*page)
+        handlers = [
+            handle_json_response(
+                response, raise_for_status=False, raise_for_content_error=False
+            )
+            for response in responses
+        ]
+        results.extend(await asyncio.gather(*handlers))
 
     row: list[JSONPrimitive] = []
     for result in results:
