@@ -315,6 +315,7 @@ async def get_recorded_at_time(
             f"streams/{web_id}/recordedattime",
             params={
                 "time": to_zulu_format(time),
+                "retrievalMode": "AtOrBefore",
                 "selectedFields": "Timestamp;Value;Good",
             },
         )
