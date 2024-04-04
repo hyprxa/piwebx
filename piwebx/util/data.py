@@ -39,15 +39,78 @@ async def locf(stream: AsyncIterator[TimeseriesRow]) -> AsyncIterator[Timeseries
             yield new_timestamp, next_data
 
 
-def join_on_interpolated(
+async def join_on_interpolated(
     interpolated_stream: AsyncIterator[TimeseriesRow],
     recorded_stream: AsyncIterator[TimeseriesRow]
 ) -> AsyncIterator[TimeseriesRow]:
-    """Join a recorded stream on the timestamp index of the interpolated stream.
+    """Join a recorded stream on the timestamp index of an interpolated stream.
     
     This behaves like a "fuzzy" join where the recorded timestamps are aligned by
-    the nearest timestamp to the interpolated dataset.
+    the nearest timestamp to the interpolated dataset. Recorded data is filled
+    with last observation carried forward, the fuzzy join never involves backdating.
     """
+    recorded_stream_ended = False
+    try:
+        last_recorded_row = await recorded_stream.__anext__()
+    except StopAsyncIteration:
+        # No data in the recorded stream
+        return
+    try:
+        current_recorded_row = await recorded_stream.__anext__()
+    except StopAsyncIteration:
+        # The recorded stream only had one row. This shouldnt even be possible
+        # if using `get_recorded` but if someone implmented their own stream then
+        # we could see this situation
+        recorded_stream_ended = True
+        current_recorded_row = last_recorded_row
+    
+    last_interpolated_row = None
+    async for current_interpolated_row in interpolated_stream:
+        # Ensure timestamps are in ascending order
+        if last_interpolated_row is not None and last_interpolated_row[0] > current_interpolated_row[0]:
+            raise ValueError(
+                "The inteprolated stream must be sorted in ascending "
+                "order by timestamp."
+            )
+
+        while not recorded_stream_ended and current_recorded_row[0] < current_interpolated_row[0]:
+            try:
+                next_recorded_row = await recorded_stream.__anext__()
+            except StopAsyncIteration:
+                recorded_stream_ended = True
+            else:
+                last_recorded_row = current_recorded_row
+                current_recorded_row = next_recorded_row
+
+        if last_recorded_row[0] > current_recorded_row[0]:
+            raise ValueError(
+                "The recorded stream must be sorted in ascending "
+                "order by timestamp"
+            )
+
+        if last_recorded_row[0] > current_interpolated_row[0]:
+            # Dont back date data, fill with `None`
+            yield current_interpolated_row[0], [*current_interpolated_row[1], *[None]*(len(last_recorded_row)-1)]
+
+        elif current_recorded_row[0] < current_interpolated_row[0]:
+            # We are at the end of the recorded stream. We don't know when the
+            # next data update is and what its value is so we fill in `None`
+            yield current_interpolated_row[0], [*current_interpolated_row[1], *[None]*(len(current_recorded_row)-1)]
+
+        elif current_recorded_row[0] == current_interpolated_row[0]:
+            # We had a perfect timestamp alignment
+            yield current_interpolated_row[0], [*current_interpolated_row[1], *current_recorded_row[1]]
+        
+        else:
+            assert (
+                current_recorded_row[0] > current_interpolated_row[0] and
+                last_recorded_row[0] <= current_interpolated_row[0]
+            )
+            # The interpolated timestamp straddles two recorded points.
+            # Take the last observation and carry forward
+            yield current_interpolated_row[0], [*current_interpolated_row[1], *last_recorded_row[1]]
+        
+        last_interpolated_row = current_interpolated_row
 
 
 def split_range(
