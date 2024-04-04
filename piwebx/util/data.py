@@ -7,7 +7,7 @@ from typing import Any, TypeVar, cast, TYPE_CHECKING
 from piwebx.util.time import from_utc
 
 
-__all__ = ("locf",)
+__all__ = ("locf", "join_on_interpolated")
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Iterator, Sequence
@@ -37,6 +37,17 @@ async def locf(stream: AsyncIterator[TimeseriesRow]) -> AsyncIterator[Timeseries
             ]
             last_data = next_data
             yield new_timestamp, next_data
+
+
+def join_on_interpolated(
+    interpolated_stream: AsyncIterator[TimeseriesRow],
+    recorded_stream: AsyncIterator[TimeseriesRow]
+) -> AsyncIterator[TimeseriesRow]:
+    """Join a recorded stream on the timestamp index of the interpolated stream.
+    
+    This behaves like a "fuzzy" join where the recorded timestamps are aligned by
+    the nearest timestamp to the interpolated dataset.
+    """
 
 
 def split_range(
