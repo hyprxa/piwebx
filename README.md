@@ -1,11 +1,12 @@
 # Async Utilities for the [AVEVA PI Web API](https://docs.aveva.com/bundle/pi-web-api-reference/page/help.html)
-`piwebx` is a collection of functions for retrieving data from the PI System via the PI Web API. Built on top of [HTTPX](https://www.python-httpx.org/), `piwebx` has a modern async API with rich support for different authentication methods.
+`piwebx` is a collection of utilities for efficiently retrieving data from the PI System via the PI Web API.
 
 ## Key Features
 - Timestamp aligned interpolated and recorded time series data retrieval
 - Iterator based API and chunk requesting allows for unbounded time ranges
 - Returns timezone aware data in user defined timezone or local timezone
 - Correctly handles timezone aware input data
+- Built on [HTTPX](https://www.python-httpx.org/) allowing for rich support of different authentication methods
 
 ## WebID Search
 Resources in PI Web API are addressed by WebIDs, which are persistent, URL-safe identifiers that encode the GUIDs and/or paths associated with objects in the PI System. There are multiple ways to search for resources in the PI Web API. `piwebx` is geared towards time series data retrieval so rather than cover all the search semantics in the Web API, basic methods to find the WebID for points and attributes, which singularly identify time series streams, are provided.
