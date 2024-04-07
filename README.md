@@ -8,59 +8,6 @@
 - Correctly handles timezone aware input data
 - Built on [HTTPX](https://www.python-httpx.org/) allowing for rich support of different authentication methods
 
-## WebID Search
-Resources in PI Web API are addressed by WebIDs, which are persistent, URL-safe identifiers that encode the GUIDs and/or paths associated with objects in the PI System. There are multiple ways to search for resources in the PI Web API. `piwebx` is geared towards time series data retrieval so rather than cover all the search semantics in the Web API, basic methods to find the WebID for points and attributes, which singularly identify time series streams, are provided.
-
-### Points
-Search for points by name.
-
-```python
-from httpx import AsyncClient
-from piwebx import find_points_web_id
-
-
-points = [
-    "point1",
-    "point2",
-    "point3",
-]
-
-async def main():
-    async with AsyncClient(base_url=...) as client:
-        found, not_found = await find_points_web_id(client, points)
-    if not_found:
-        for point in not_found:
-            print(f"{point} was not found")
-    
-    for point, web_id in found:
-        print(f"The WebID for {point} is {web_id}")
-```
-
-### Attributes
-Search for attributes by their fully qualified path.
-
-```python
-from httpx import AsyncClient
-from piwebx import find_attributes_web_id
-
-
-attributes = [
-    "\\\\server\\database\\element|attribute1",
-    "\\\\server\\database\\element|attribute2",
-    "\\\\server\\database\\element|attribute3",
-]
-
-async def main():
-    async with AsyncClient(base_url=...) as client:
-        found, not_found = await find_attributes_web_id(client, attributes)
-    if not_found:
-        for attribute in not_found:
-            print(f"{attribute} was not found")
-    
-    for attribute, web_id in found:
-        print(f"The WebID for {attribute} is {web_id}")
-```
-
 ## Interpolated Data
 The PI Web API supports retrieving time series in an interpolated format. `piwebx` makes it easy to get interpolated data for many streams...
 
@@ -150,4 +97,57 @@ async def main():
         async with AsyncClient(base_url=...) as client:
             async for timestamp, data in locf(get_recorded(client, web_ids, start=start)):
                 writer.writerow((timestamp.isoformat(), *data))
+```
+
+## WebID Search
+Resources in PI Web API are addressed by WebIDs, which are persistent, URL-safe identifiers that encode the GUIDs and/or paths associated with objects in the PI System. There are multiple ways to search for resources in the PI Web API. `piwebx` is geared towards time series data retrieval so rather than cover all the search semantics in the Web API, basic methods to find the WebID for points and attributes, which singularly identify time series streams, are provided.
+
+### Points
+Search for points by name.
+
+```python
+from httpx import AsyncClient
+from piwebx import find_points_web_id
+
+
+points = [
+    "point1",
+    "point2",
+    "point3",
+]
+
+async def main():
+    async with AsyncClient(base_url=...) as client:
+        found, not_found = await find_points_web_id(client, points)
+    if not_found:
+        for point in not_found:
+            print(f"{point} was not found")
+    
+    for point, web_id in found:
+        print(f"The WebID for {point} is {web_id}")
+```
+
+### Attributes
+Search for attributes by their fully qualified path.
+
+```python
+from httpx import AsyncClient
+from piwebx import find_attributes_web_id
+
+
+attributes = [
+    "\\\\server\\database\\element|attribute1",
+    "\\\\server\\database\\element|attribute2",
+    "\\\\server\\database\\element|attribute3",
+]
+
+async def main():
+    async with AsyncClient(base_url=...) as client:
+        found, not_found = await find_attributes_web_id(client, attributes)
+    if not_found:
+        for attribute in not_found:
+            print(f"{attribute} was not found")
+    
+    for attribute, web_id in found:
+        print(f"The WebID for {attribute} is {web_id}")
 ```
