@@ -11,7 +11,7 @@ __all__ = ("locf", "join_on_interpolated")
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Iterator, Sequence
-    from piwebx.types import JSONPrimitive, TimeseriesRow
+    from piwebx.types import JSONPrimitive, LabeledTimeseriesValue, TimeseriesRow
 
     T = TypeVar("T")
 
@@ -218,6 +218,22 @@ def iter_timeseries_rows(
         yield from_utc(timestamp, timezone), row
 
 
+def iter_timeseries_values(
+    data: list[tuple[str, dict[str, list[Any]]]],
+    timezone: str | None = None,
+) -> Iterator[LabeledTimeseriesValue]:
+    """Iterate a collection of timeseries data and produce labeled timestamped values.
+
+    This will also handle timezone conversion. Timestamps from the PI Web API are
+    always UTC. If a timezone is specified, this will handle the conversion from
+    UTC to the desired timezone. The returned timestamps are always timezone aware.
+    """
+    timezone = timezone or "UTC"
+    for web_id, values in data:
+        for timestamp, value in zip(values["timestamp"], values["value"]):
+            yield web_id, from_utc(timestamp, timezone), value
+
+
 def format_streams_content(
     content: dict[str, list[dict[str, JSONPrimitive]]] | None
 ) -> dict[str, list[JSONPrimitive]]:
@@ -239,6 +255,36 @@ def format_streams_content(
                 value = value["Name"]
         formatted["timestamp"].append(timestamp)
         formatted["value"].append(value)
+
+    return formatted
+
+
+def format_streamsets_content(
+    content: dict[str, list[dict[str, list[dict[str, JSONPrimitive]]]]] | None
+) -> list[tuple[str, dict[str, list[JSONPrimitive]]]]:
+    """Extract timestamp and value for each item in a streamset response."""
+    formatted = cast("list[tuple[str, dict[str, list[JSONPrimitive]]]]", [])
+    items = content.get("Items", []) if content is not None else []
+
+    for item in items:
+        web_id = item["WebId"]
+        sub_items = item.get("Items", [])
+        values = cast("dict[str, list[JSONPrimitive]]", {"timestamp": [], "value": []})
+        for sub_item in sub_items:
+            timestamp = sub_item["Timestamp"]
+            good = sub_item["Good"]
+            if not good:
+                value = None
+            else:
+                # If a stream item returned an error, the value will be `None`
+                # and we're not particularly interested in the errors
+                # https://docs.osisoft.com/bundle/pi-web-api-reference/page/help/topics/error-handling.html
+                value = sub_item["Value"]
+                if isinstance(value, dict):
+                    value = value["Name"]
+            values["timestamp"].append(timestamp)
+            values["value"].append(value)
+        formatted.append((web_id, values))
 
     return formatted
 
