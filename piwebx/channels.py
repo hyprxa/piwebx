@@ -8,18 +8,20 @@ from typing import TYPE_CHECKING
 
 from httpx_ws import aconnect_ws
 
-from piwebx.exceptions import BufferClosed,  ChannelGroupException
+from piwebx.exceptions import BufferClosed, ChannelGroupException
 from piwebx.util.data import format_streamsets_content, iter_timeseries_values, paginate
 from piwebx.util.datastructures import Buffer
 
 
-__all__ = ("ChannelGroup", "open_channel_group",)
+__all__ = (
+    "ChannelGroup",
+    "open_channel_group",
+)
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
-    
-    from piwebx.types import LabeledTimeseriesValue
 
+    from piwebx.types import LabeledTimeseriesValue
 
 MAX_HEADER_BYTES = 4096  # 4KB
 MAX_BUFFER = 500
@@ -35,7 +37,7 @@ async def open_channel_group(
     keepalive_ping_timeout_seconds: float = 20,
     subprotocols: list[str] | None = None,
     timezone: str | None = None,
-) -> AsyncIterator[ChannelGroup[LabeledTimeseriesValue]]:
+) -> AsyncIterator[ChannelGroup]:
     """Subscribe to a sequence of PI tags for near real-time data streaming.
 
     Wraps N websocket connections and returns a `ChannelGroup` for iterating
@@ -63,7 +65,7 @@ async def open_channel_group(
             websocket messages will buffer at the connection level up to 512 messages, at
             which point messages will then buffer at the transport level
         keepalive_ping_interval_seconds: Interval at which the client will automatically
-            send a Ping event to keep the connection alive. Set it to `None` to 
+            send a Ping event to keep the connection alive. Set it to `None` to
             disable this mechanism. Defaults to 20 seconds.
         keepalive_ping_timeout_seconds: Maximum delay the client will wait for an answer
             to its Ping event. If the delay is exceeded, ``httpx_ws.WebSocketNetworkError``
@@ -98,7 +100,7 @@ async def open_channel_group(
         await group.close()
 
 
-class ChannelGroup(AsyncIterator):
+class ChannelGroup(AsyncIterator[LabeledTimeseriesValue]):
     """Manage and iterate over a group of channel connections."""
 
     def __init__(self, client: AsyncClient, buf: Buffer) -> None:
@@ -107,18 +109,24 @@ class ChannelGroup(AsyncIterator):
         self._exceptions: list[BaseException] = []
         self._channels: set[asyncio.Task] = set()
 
+        self._closing: asyncio.Task | None = None
+        self._closed = False
+
     async def close(self) -> None:
         """Close the channel group.
-        
+
         This closes all channels and closes the underlying buffer.
         """
+        self._closed = True
         futs = tuple(self._channels)
-        for fut in futs: fut.cancel()
+        self._channels = set()
+        for fut in futs:
+            fut.cancel()
         self._buf.close()
         if futs:
             await asyncio.wait(futs, return_when=asyncio.ALL_COMPLETED)
 
-    def _channel_done(self, fut: asyncio.Future) -> None:
+    def _channel_done(self, fut: asyncio.Task) -> None:
         """Callback after a channel closes. Discard the channel, close the group,
         and note any exceptions.
         """
@@ -129,7 +137,8 @@ class ChannelGroup(AsyncIterator):
             return
         if exc is not None:
             self._exceptions.append(exc)
-        self.close()
+        if not self._closed and self._closing is None:
+            self._closing = asyncio.create_task(self.close())
 
     def _open_channel(
         self,
@@ -151,7 +160,7 @@ class ChannelGroup(AsyncIterator):
                 keepalive_ping_interval_seconds=keepalive_ping_interval_seconds,
                 keepalive_ping_timeout_seconds=keepalive_ping_timeout_seconds,
                 subprotocols=subprotocols,
-                timezone=timezone, 
+                timezone=timezone,
             )
         )
         task.add_done_callback(self._channel_done)
@@ -190,7 +199,10 @@ class ChannelGroup(AsyncIterator):
         except BufferClosed:
             pass
 
+        if self._closing is not None and not self._closing.done():
+            await self._closing
+
         if self._exceptions:
             raise ChannelGroupException(self._exceptions)
-        
+
         raise StopAsyncIteration()

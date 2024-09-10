@@ -4,12 +4,7 @@ from typing_extensions import TypeAlias
 from pendulum.datetime import DateTime
 
 
-__all__ = (
-    "JSONContent",
-    "JSONPrimitive",
-    "LabeledTimeseriesValue",
-    "TimeseriesRow"
-)
+__all__ = ("JSONContent", "JSONPrimitive", "LabeledTimeseriesValue", "TimeseriesRow")
 
 
 JSONPrimitive: TypeAlias = Union[str, int, float, bool, None]

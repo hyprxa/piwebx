@@ -15,7 +15,9 @@ if TYPE_CHECKING:
     from httpx import AsyncClient
 
 
-async def find_assetserver_web_id(client: AsyncClient, assetserver: str | None = None) -> str:
+async def find_assetserver_web_id(
+    client: AsyncClient, assetserver: str | None = None
+) -> str:
     """Get the asset server WebId.
 
     If not specified, the first asset server returned in the list from "/assetservers"
@@ -31,7 +33,9 @@ async def find_assetserver_web_id(client: AsyncClient, assetserver: str | None =
         httpx.HTTPError: There was an ambiguous exception that occurred while
             handling the request
     """
-    response = await client.get("/assetservers", params={"selectedFields": "Items.Name;Items.WebId"})
+    response = await client.get(
+        "/assetservers", params={"selectedFields": "Items.Name;Items.WebId"}
+    )
     data = cast("dict[str, list[dict[str, str]]]", await handle_json_response(response))
 
     items = data.get("Items")
@@ -40,7 +44,7 @@ async def find_assetserver_web_id(client: AsyncClient, assetserver: str | None =
             "Unable to select asset server WebID. No items returned from server",
             errors=[],
             request=response.request,
-            response=response
+            response=response,
         )
     if assetserver:
         for item in items:
@@ -51,13 +55,15 @@ async def find_assetserver_web_id(client: AsyncClient, assetserver: str | None =
                 f"Unable to select asset server WebID. '{assetserver}' not found",
                 errors=[],
                 request=response.request,
-                response=response
+                response=response,
             )
     else:
         return items[0]["WebId"]
 
 
-async def find_dataserver_web_id(client: AsyncClient, dataserver: str | None = None) -> str:
+async def find_dataserver_web_id(
+    client: AsyncClient, dataserver: str | None = None
+) -> str:
     """Get the data archive server WebId.
 
     If not specified, the first data server returned in the list from "/dataservers"
@@ -73,7 +79,9 @@ async def find_dataserver_web_id(client: AsyncClient, dataserver: str | None = N
         httpx.HTTPError: There was an ambiguous exception that occurred while
             handling the request
     """
-    response = await client.get("/dataservers", params={"selectedFields": "Items.Name;Items.WebId"})
+    response = await client.get(
+        "/dataservers", params={"selectedFields": "Items.Name;Items.WebId"}
+    )
     data = cast("dict[str, list[dict[str, str]]]", await handle_json_response(response))
 
     items = data.get("Items")
@@ -82,7 +90,7 @@ async def find_dataserver_web_id(client: AsyncClient, dataserver: str | None = N
             "Unable to select data server WebID. No items returned from server",
             errors=[],
             request=response.request,
-            response=response
+            response=response,
         )
     if dataserver:
         for item in items:
@@ -93,7 +101,7 @@ async def find_dataserver_web_id(client: AsyncClient, dataserver: str | None = N
                 f"Unable to select data server WebID. '{dataserver}' not found",
                 errors=[],
                 request=response.request,
-                response=response
+                response=response,
             )
     else:
         return items[0]["WebId"]

@@ -121,7 +121,7 @@ async def get_interpolated(
                 for response in responses
             ]
             results.extend(await asyncio.gather(*handlers))
-        
+
         data = [format_streams_content(result) for result in results]
         index = get_timestamp_index(data)
 
@@ -212,7 +212,7 @@ async def get_recorded(
                 for response in responses
             ]
             results.extend(await asyncio.gather(*handlers))
-        
+
         data = [format_streams_content(result) for result in results]
         index = get_timestamp_index(data)
 

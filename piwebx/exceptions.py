@@ -30,10 +30,10 @@ class APIResponseError(HTTPError):
 
 class BufferClosed(Exception):
     """Primarily an internal exception used to signal a buffer is closed."""
-    
+
     def __str__(self) -> str:
         return "Buffer is closed"
-    
+
 
 class ChannelGroupException(BaseException):
     """Raised if one or more errors occurs in a ChannelGroup."""

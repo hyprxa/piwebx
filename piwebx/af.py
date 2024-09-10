@@ -25,9 +25,7 @@ _LOGGER = logging.getLogger("piwebx")
 
 
 async def find_assetdatabase_web_id(
-    client: AsyncClient,
-    assetdatabase: str,
-    assetserver: str | None = None
+    client: AsyncClient, assetdatabase: str, assetserver: str | None = None
 ) -> str:
     """Get the asset database WebId.
 
@@ -49,7 +47,7 @@ async def find_assetdatabase_web_id(
 
     response = await client.get(
         f"/assetservers/{assetserver_web_id}/assetdatabases",
-        params={"selectedFields": "Items.Name;Items.WebId"}
+        params={"selectedFields": "Items.Name;Items.WebId"},
     )
     data = cast("dict[str, list[dict[str, str]]]", await handle_json_response(response))
 
@@ -59,7 +57,7 @@ async def find_assetdatabase_web_id(
             "Unable to select asset database WebID. No items returned from server",
             errors=[],
             request=response.request,
-            response=response
+            response=response,
         )
 
     for item in items:
@@ -70,7 +68,7 @@ async def find_assetdatabase_web_id(
             f"Unable to select asset database WebID. '{assetdatabase}' not found",
             errors=[],
             request=response.request,
-            response=response
+            response=response,
         )
 
 

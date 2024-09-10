@@ -38,7 +38,7 @@ class Buffer:
         """Pop a value from the buffer or block until one becomes available."""
         close = self._get_loop().create_future()
         get = asyncio.create_task(self._queue.get())
-        
+
         self._futs.add(close)
         try:
             try:
@@ -49,14 +49,14 @@ class Buffer:
         except asyncio.CancelledError:
             get.cancel()
             raise
-        
+
         if get.done():
             return get.result()
-        
+
         get.cancel()
         assert self.closed
         raise BufferClosed()
-        
+
     async def pop(self, timeout: float | None = None) -> Any:
         """Pop a value from the buffer or block until one becomes available.
 
@@ -71,9 +71,9 @@ class Buffer:
 
         if self.closed:
             raise BufferClosed()
-        
+
         return await asyncio.wait_for(self._pop(), timeout=timeout)
-    
+
     async def _append(self, element: Any) -> None:
         """Append a value to the buffer or block until space is available."""
         close = self._get_loop().create_future()
@@ -89,17 +89,17 @@ class Buffer:
         except asyncio.CancelledError:
             put.cancel()
             raise
-        
+
         if put.done():
             return put.result()
-        
+
         put.cancel()
         assert self.closed
         raise BufferClosed()
-    
+
     async def append(self, element: Any) -> None:
         """Append a value to the buffer or block until space is available.
-        
+
         This can be safely cancelled.
 
         Raises:
@@ -108,7 +108,7 @@ class Buffer:
         """
         if self.closed:
             raise BufferClosed()
-        
+
         await self._append(element)
 
     def close(self) -> None:
@@ -119,8 +119,8 @@ class Buffer:
         """
         if self.closed:
             return
-        
+
         for fut in self._futs:
             fut.cancel()
-            
+
         self.closed = True
