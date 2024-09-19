@@ -4,7 +4,7 @@ import math
 from datetime import datetime, timedelta
 from typing import Any, TypeVar, cast, TYPE_CHECKING
 
-from piwebx.util.time import from_utc
+from piwebx.util.time import from_utc, to_utc
 
 
 __all__ = ("locf", "join_on_interpolated")
@@ -69,7 +69,7 @@ async def join_on_interpolated(
         # Ensure timestamps are in ascending order
         if (
             last_interpolated_row is not None
-            and last_interpolated_row[0] > current_interpolated_row[0]
+            and to_utc(last_interpolated_row[0]) > to_utc(current_interpolated_row[0])
         ):
             raise ValueError(
                 "The inteprolated stream must be sorted in ascending "
