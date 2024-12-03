@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime as dt
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -68,7 +69,7 @@ def fuzzy_parse(timestamp: str) -> DateTime:
         raise dateutil.parser.ParserError("Invalid timestamp format %s", timestamp)
 
     if parsed.tzinfo is not None:
-        offset = parsed.tzinfo.utcoffset(datetime.utcnow())
+        offset = parsed.tzinfo.utcoffset(datetime.now(dt.UTC))
         tzinfo = pendulum.tz.fixed_timezone(offset.total_seconds())
         parsed = parsed.replace(tzinfo=tzinfo)
 
