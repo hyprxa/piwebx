@@ -1,3 +1,3 @@
 __title__ = "piwebx"
 __description__ = "Async data client for the AVEVA PI Web API"
-__version__ = "0.2.1"
+__version__ = "0.2.2"
