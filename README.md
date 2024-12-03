@@ -4,6 +4,7 @@
 ## Key Features
 - Timestamp aligned interpolated and recorded time series data retrieval
 - Iterator based API and chunk requesting allows for unbounded time ranges
+- Support for [Channels](https://docs.aveva.com/bundle/pi-web-api-reference/page/help/topics/channels.html)
 - Returns timezone aware data in user defined timezone or local timezone
 - Correctly handles timezone aware input data
 - Built on [HTTPX](https://www.python-httpx.org/) allowing for rich support of different authentication methods
@@ -97,6 +98,27 @@ async def main():
         async with AsyncClient(base_url=...) as client:
             async for timestamp, data in locf(get_recorded(client, web_ids, start=start)):
                 writer.writerow((timestamp.isoformat(), *data))
+```
+
+## Channels
+A channel is a way to receive continuous updates about a stream. `piwebx` has first class support for channels in an easy to use API. `open_channel_group` opens and manages all connections required to receive real-time updates from any number of streams.
+
+```python
+from httpx import AsyncClient
+from piwebx import open_channel_group, LabeledTimeseriesValue
+
+
+web_ids = ["web_id1", ...]
+
+def process_timeseries_value(val: LabeledTimeseriesValue) -> None:
+    ...
+
+async def main():
+    async with AsyncClient(base_url=...) as client:
+        # Upon exiting the context, all connections in the channel group are closed
+        with open_channel_group(client, web_ids) as cg:
+            async for val in cg:
+                process_timeseries_value(val)
 ```
 
 ## WebID Search
