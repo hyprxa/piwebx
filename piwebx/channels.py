@@ -100,7 +100,7 @@ async def open_channel_group(
         await group.close()
 
 
-class ChannelGroup(AsyncIterator[LabeledTimeseriesValue]):
+class ChannelGroup(AsyncIterator):
     """Manage and iterate over a group of channel connections."""
 
     def __init__(self, client: AsyncClient, buf: Buffer) -> None:
